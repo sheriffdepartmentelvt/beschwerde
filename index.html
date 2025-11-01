@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/LSSD.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Los Santos Sheriff Department - Beschwerde</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1 class="title">LOS SANTOS SHERIFF DEPARTMENT</h1>
+        <p class="subtitle">Protect and Serve</p>
+      </header>
+
+      <main class="main-content">
+        <div class="intro-section">
+          <h2 class="section-title">Beschwerdeformular</h2>
+          <p class="intro-text">
+            Wenn du der Meinung bist, dass ein Beamter des Los Santos Sheriff Department sich unangemessen verhalten hat,
+            kannst du hier eine offizielle Beschwerde einreichen. Bitte gib möglichst genaue Informationen an.
+          </p>
+        </div>
+
+        <form id="complaintForm" class="application-form">
+          <div class="form-section">
+            <h3 class="form-section-title">Persönliche Informationen</h3>
+
+            <div class="form-group">
+              <label for="fullName">Name des Beamten</label>
+              <input type="text" id="fullName" name="fullName" required>
+            </div>
+
+            <div class="form-group">
+              <label for="icName">(IC) DeinVorname und Nachname</label>
+              <input type="text" id="icName" name="icName" required>
+            </div>
+
+            <div class="form-group">
+              <label for="phone">(IC) Telefonnummer</label>
+              <input type="tel" id="phone" name="phone" required>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3 class="form-section-title">Beschwerde</h3>
+
+            <div class="form-group">
+              <label for="incident">Was hat der Beamte getan?</label>
+              <textarea id="incident" name="incident" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="evidence">Hast du ein Clip davon? Wenn ja, sende den Link hier rein.</label>
+              <textarea id="evidence" name="evidence" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="additional">Zusätzliche Informationen</label>
+              <textarea id="additional" name="additional" rows="4"></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <span>Beschwerde einreichen</span>
+          </button>
+        </form>
+
+        <div id="successMessage" class="success-message hidden">
+          <div class="success-content">
+            <div class="success-icon"></div>
+            <h3>Beschwerde erfolgreich eingereicht!</h3>
+            <p>
+              Vielen Dank für deine Mitteilung. Das Los Santos Sheriff Department wird den Vorfall prüfen
+              und sich bei Bedarf mit dir in Verbindung setzen.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <p>&copy; 2025 Los Santos Sheriff Department. All rights reserved.</p>
+      </footer>
+    </div>
+
+    <script>
+      const WEBHOOK_URL = 'https://discord.com/api/webhooks/1433888579704197333/lDK7VgG6AIsoQIq-cTP1eLzmip05EgwBYbnKPueP56XnEV4ywSY7aRTjkkvRwaMda2y0';
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('complaintForm');
+        const successMessage = document.getElementById('successMessage');
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const submitBtn = form.querySelector('.submit-btn');
+          const originalText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<span>Wird gesendet...</span>';
+          submitBtn.disabled = true;
+
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData.entries());
+
+          const embed = {
+            title: 'Neue Beschwerde - Los Santos Sheriff Department',
+            color: 16734296,
+            fields: [
+              {
+                name: 'Beamter',
+                value: data.fullName || 'Nicht angegeben',
+                inline: true
+              },
+              {
+                name: '(IC) Name des Beschwerdeführers',
+                value: data.icName || 'Nicht angegeben',
+                inline: true
+              },
+              {
+                name: '(IC) Telefonnummer',
+                value: data.phone || 'Nicht angegeben',
+                inline: true
+              },
+              {
+                name: 'Was ist passiert?',
+                value: data.incident || 'Nicht angegeben',
+                inline: false
+              },
+              {
+                name: 'Clip / Beweismaterial',
+                value: data.evidence || 'Nicht angegeben',
+                inline: false
+              },
+              {
+                name: 'Zusätzliche Informationen',
+                value: data.additional || 'Keine',
+                inline: false
+              }
+            ],
+            footer: {
+              text: 'Los Santos Sheriff Department - Beschwerdesystem'
+            },
+            timestamp: new Date().toISOString()
+          };
+
+          try {
+            const response = await fetch(WEBHOOK_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                embeds: [embed],
+                username: data.icName || 'LSSD Beschwerdesystem'
+              })
+            });
+
+            if (response.ok) {
+              form.reset();
+              successMessage.classList.remove('hidden');
+              setTimeout(() => successMessage.classList.add('hidden'), 5000);
+            } else {
+              console.error('Discord API Error:', await response.text());
+            }
+          } catch (error) {
+            console.error('Network Error:', error);
+          } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
